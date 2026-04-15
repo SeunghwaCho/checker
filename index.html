@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <title>Vanilla Checkers</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <h1>체커</h1>
+      <div class="row">
+        <button id="new1pBtn">새 게임(1인용)</button>
+        <button id="new2pBtn">새 게임(2인용)</button>
+        <button id="pauseBtn">일시정지</button>
+        <button id="resumeBtn">이어하기</button>
+        <button id="hintBtn">힌트</button>
+        <button id="helpBtn">도움말</button>
+        <button id="soundBtn">사운드: ON</button>
+      </div>
+      <div id="status"></div>
+    </header>
+
+    <main class="board-wrap">
+      <canvas id="board" aria-label="체커 보드" role="img"></canvas>
+    </main>
+
+    <aside id="helpPanel" class="help hidden">
+      <h2>도움말</h2>
+      <ul>
+        <li>마우스/터치: 말 선택 후 이동칸 선택</li>
+        <li>키보드:
+          <ul>
+            <li>방향키: 커서 이동</li>
+            <li>Enter/Space: 선택/이동</li>
+            <li>H: 힌트</li>
+            <li>P: 일시정지/해제</li>
+            <li>N: 새 게임(2인)</li>
+            <li>1: 새 게임(1인)</li>
+          </ul>
+        </li>
+        <li>강제 점프 규칙 적용(잡을 수 있으면 반드시 잡아야 함)</li>
+      </ul>
+      <button id="closeHelpBtn">닫기</button>
+    </aside>
+  </div>
+
+  <script src="./app.js"></script>
+  <script src="./tests.js"></script>
+</body>
+</html>
