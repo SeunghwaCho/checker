@@ -392,7 +392,7 @@
 
   function toggleSound() {
     state.soundOn = !state.soundOn;
-    soundBtn.textContent = `사운드: ${state.soundOn ? "ON" : "OFF"}`;
+    soundBtn.textContent = `${state.soundOn ? "🔊" : "🔇"} 사운드: ${state.soundOn ? "ON" : "OFF"}`;
     saveGame();
   }
 
