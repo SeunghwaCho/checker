@@ -32,6 +32,10 @@
   const confirmMsg = document.getElementById("confirmMsg");
   const confirmOk = document.getElementById("confirmOk");
   const confirmCancel = document.getElementById("confirmCancel");
+  const orderOverlay = document.getElementById("orderOverlay");
+  const orderFirst = document.getElementById("orderFirst");
+  const orderSecond = document.getElementById("orderSecond");
+  const orderCancel = document.getElementById("orderCancel");
 
   // ===== State =====
   let state = {
@@ -46,7 +50,8 @@
     winner: null,
     cursor: { r: 0, c: 0 },
     soundOn: true,
-    hint: null
+    hint: null,
+    playerColor: RED
   };
 
   // ===== Audio (WebAudio, no external files) =====
@@ -133,7 +138,7 @@
     return b;
   }
 
-  function newGame(mode) {
+  function newGame(mode, playerColor = RED) {
     state.board = createInitialBoard();
     state.turn = RED;
     state.selected = null;
@@ -145,11 +150,19 @@
     state.winner = null;
     state.cursor = { r: 0, c: 0 };
     state.hint = null;
+    state.playerColor = playerColor;
     pauseBtn.textContent = "⏸️ 일시정지";
     setStatus(`새 게임 시작 (${mode}) - RED 차례`);
     beep(523, 0.08);
     render();
     saveGame();
+    // 후공이면 AI가 먼저
+    if (mode === MODE_1P && playerColor !== RED) {
+      setTimeout(() => {
+        const ai = bestMoveFor(RED, state.board);
+        if (ai) doMove(ai);
+      }, 300);
+    }
   }
 
   // ===== Rules =====
@@ -277,14 +290,16 @@
     return score;
   }
 
-  function bestMoveForBlack(board) {
-    const { moves } = allLegalMoves(board, BLACK, null);
+  function bestMoveFor(color, board) {
+    const { moves } = allLegalMoves(board, color, null);
     if (!moves.length) return null;
-    let best = moves[0], bestVal = -Infinity;
+    // BLACK maximizes score, RED minimizes
+    const maximizing = color === BLACK;
+    let best = moves[0], bestVal = maximizing ? -Infinity : Infinity;
     for (const mv of moves) {
       const nb = applyMove(board, mv);
-      const val = minimax(nb, 2, false);
-      if (val > bestVal) { bestVal = val; best = mv; }
+      const val = minimax(nb, 2, !maximizing);
+      if (maximizing ? val > bestVal : val < bestVal) { bestVal = val; best = mv; }
     }
     return best;
   }
@@ -311,6 +326,7 @@
 
   function selectCell(r, c) {
     if (state.paused || state.winner) return;
+    if (state.mode === MODE_1P && state.turn !== state.playerColor) return;
     const piece = state.board[r][c];
     const legal = allLegalMoves(state.board, state.turn, state.forcedPiece);
     state.mustCapture = legal.mustCapture;
@@ -369,9 +385,10 @@
     render();
 
     // 1P AI turn
-    if (!state.winner && state.mode === MODE_1P && state.turn === BLACK && !state.paused) {
+    const aiColor = state.playerColor === RED ? BLACK : RED;
+    if (!state.winner && state.mode === MODE_1P && state.turn === aiColor && !state.paused) {
       setTimeout(() => {
-        const ai = bestMoveForBlack(state.board);
+        const ai = bestMoveFor(aiColor, state.board);
         if (ai) doMove(ai);
       }, 300);
     }
@@ -591,8 +608,18 @@
     confirmCancel.onclick = cleanup;
   }
 
+  function showOrderDialog(onSelect) {
+    orderOverlay.classList.remove("hidden");
+    const cleanup = () => orderOverlay.classList.add("hidden");
+    orderFirst.onclick  = () => { cleanup(); onSelect(RED); };
+    orderSecond.onclick = () => { cleanup(); onSelect(BLACK); };
+    orderCancel.onclick = cleanup;
+  }
+
   // ===== Buttons =====
-  new1pBtn.onclick = () => showConfirm("진행 중인 게임이 종료됩니다.\n1인용 새 게임을 시작할까요?", () => newGame(MODE_1P));
+  new1pBtn.onclick = () => showConfirm("진행 중인 게임이 종료됩니다.\n1인용 새 게임을 시작할까요?", () =>
+    showOrderDialog(playerColor => newGame(MODE_1P, playerColor))
+  );
   new2pBtn.onclick = () => showConfirm("진행 중인 게임이 종료됩니다.\n2인용 새 게임을 시작할까요?", () => newGame(MODE_2P));
   pauseBtn.onclick = () => togglePause();
   hintBtn.onclick = () => showHint();
@@ -618,7 +645,7 @@
   // Expose core for tests
   window.CheckersCore = {
     createInitialBoard, allLegalMoves, applyMove, getMovesForPiece,
-    cloneBoard, evaluate, bestMoveForBlack,
+    cloneBoard, evaluate, bestMoveFor,
     RED, BLACK, RED_KING, BLACK_KING, EMPTY,
     SIZE
   };

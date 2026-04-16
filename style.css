@@ -105,11 +105,13 @@ button:focus { outline: 2px solid var(--accent); }
 }
 .confirm-btns {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
 }
 .confirm-btns button {
   flex: 1;
+  min-width: 80px;
   font-size: 14px;
 }
 
