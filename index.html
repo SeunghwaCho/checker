@@ -15,7 +15,6 @@
         <button id="new1pBtn">🤖 새 게임(1인용)</button>
         <button id="new2pBtn">👥 새 게임(2인용)</button>
         <button id="pauseBtn">⏸️ 일시정지</button>
-        <button id="resumeBtn">▶️ 이어하기</button>
         <button id="hintBtn">💡 힌트</button>
         <button id="helpBtn">❓ 도움말</button>
         <button id="soundBtn">🔊 사운드: ON</button>
@@ -26,6 +25,16 @@
     <main class="board-wrap">
       <canvas id="board" aria-label="체커 보드" role="img"></canvas>
     </main>
+
+    <div id="confirmOverlay" class="confirm-overlay hidden">
+      <div class="confirm-box">
+        <p id="confirmMsg"></p>
+        <div class="confirm-btns">
+          <button id="confirmOk">✅ 확인</button>
+          <button id="confirmCancel">❌ 취소</button>
+        </div>
+      </div>
+    </div>
 
     <aside id="helpPanel" class="help hidden">
       <h2>도움말</h2>

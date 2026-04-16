@@ -23,12 +23,15 @@
   const new1pBtn = document.getElementById("new1pBtn");
   const new2pBtn = document.getElementById("new2pBtn");
   const pauseBtn = document.getElementById("pauseBtn");
-  const resumeBtn = document.getElementById("resumeBtn");
   const hintBtn = document.getElementById("hintBtn");
   const helpBtn = document.getElementById("helpBtn");
   const closeHelpBtn = document.getElementById("closeHelpBtn");
   const helpPanel = document.getElementById("helpPanel");
   const soundBtn = document.getElementById("soundBtn");
+  const confirmOverlay = document.getElementById("confirmOverlay");
+  const confirmMsg = document.getElementById("confirmMsg");
+  const confirmOk = document.getElementById("confirmOk");
+  const confirmCancel = document.getElementById("confirmCancel");
 
   // ===== State =====
   let state = {
@@ -142,6 +145,7 @@
     state.winner = null;
     state.cursor = { r: 0, c: 0 };
     state.hint = null;
+    pauseBtn.textContent = "⏸️ 일시정지";
     setStatus(`새 게임 시작 (${mode}) - RED 차례`);
     beep(523, 0.08);
     render();
@@ -385,6 +389,7 @@
 
   function togglePause() {
     state.paused = !state.paused;
+    pauseBtn.textContent = state.paused ? "▶️ 이어하기" : "⏸️ 일시정지";
     setStatus(state.paused ? "일시정지됨 - P키 또는 버튼으로 재개" : "재개됨");
     saveGame();
     render();
@@ -398,17 +403,21 @@
 
   // ===== Rendering =====
   function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
     const topbarH = document.querySelector(".topbar").getBoundingClientRect().height;
     const availW = window.innerWidth - 16;
     const availH = window.innerHeight - topbarH - 16;
-    const size = Math.floor(Math.max(240, Math.min(availW, availH)));
-    canvas.width = size;
-    canvas.height = size;
+    const cssSize = Math.floor(Math.max(240, Math.min(availW, availH)));
+    canvas.style.width = cssSize + "px";
+    canvas.style.height = cssSize + "px";
+    canvas.width = Math.round(cssSize * dpr);
+    canvas.height = Math.round(cssSize * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     render();
   }
 
   function drawBoard() {
-    const s = canvas.width / SIZE;
+    const s = canvas.clientWidth / SIZE;
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
         ctx.fillStyle = (r + c) % 2 === 0 ? "#d7b899" : "#5a3d2b";
@@ -462,7 +471,7 @@
   }
 
   function drawPieces() {
-    const s = canvas.width / SIZE;
+    const s = canvas.clientWidth / SIZE;
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
         const p = state.board[r][c];
@@ -503,28 +512,29 @@
   }
 
   function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    ctx.clearRect(0, 0, W, H);
     drawBoard();
     drawPieces();
 
     if (state.paused) {
       ctx.fillStyle = "rgba(0,0,0,0.55)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "#fff";
-      ctx.font = `bold ${Math.floor(canvas.width * 0.09)}px sans-serif`;
+      ctx.font = `bold ${Math.floor(W * 0.09)}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+      ctx.fillText("PAUSED", W / 2, H / 2);
     }
 
     if (state.winner) {
       ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "#ffd700";
-      ctx.font = `bold ${Math.floor(canvas.width * 0.09)}px sans-serif`;
+      ctx.font = `bold ${Math.floor(W * 0.09)}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(`${state.winner === RED ? "RED" : "BLACK"} WIN!`, canvas.width / 2, canvas.height / 2);
+      ctx.fillText(`${state.winner === RED ? "RED" : "BLACK"} WIN!`, W / 2, H / 2);
     }
   }
 
@@ -572,15 +582,19 @@
     e.preventDefault();
   });
 
+  // ===== Confirm Dialog =====
+  function showConfirm(msg, onOk) {
+    confirmMsg.textContent = msg;
+    confirmOverlay.classList.remove("hidden");
+    const cleanup = () => confirmOverlay.classList.add("hidden");
+    confirmOk.onclick = () => { cleanup(); onOk(); };
+    confirmCancel.onclick = cleanup;
+  }
+
   // ===== Buttons =====
-  new1pBtn.onclick = () => newGame(MODE_1P);
-  new2pBtn.onclick = () => newGame(MODE_2P);
+  new1pBtn.onclick = () => showConfirm("진행 중인 게임이 종료됩니다.\n1인용 새 게임을 시작할까요?", () => newGame(MODE_1P));
+  new2pBtn.onclick = () => showConfirm("진행 중인 게임이 종료됩니다.\n2인용 새 게임을 시작할까요?", () => newGame(MODE_2P));
   pauseBtn.onclick = () => togglePause();
-  resumeBtn.onclick = async () => {
-    const ok = await loadGame();
-    setStatus(ok ? "저장 데이터 로드 완료" : "저장 데이터 없음");
-    render();
-  };
   hintBtn.onclick = () => showHint();
   helpBtn.onclick = () => helpPanel.classList.remove("hidden");
   closeHelpBtn.onclick = () => helpPanel.classList.add("hidden");
