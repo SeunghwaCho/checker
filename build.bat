@@ -11,7 +11,7 @@ mkdir "%RELEASE_DIR%"
 copy style.css "%RELEASE_DIR%\" >nul
 copy app.js    "%RELEASE_DIR%\" >nul
 
-powershell -Command "(Get-Content index.html -Encoding UTF8) -replace '  <script src=""./tests.js""></script>', '' | Set-Content '%RELEASE_DIR%\index.html' -Encoding UTF8"
+powershell -Command "(Get-Content 'index.html' -Encoding UTF8) | Where-Object { $_ -notmatch 'tests\.js' } | Set-Content '%RELEASE_DIR%\index.html' -Encoding UTF8"
 
 echo Build done: %RELEASE_DIR%\
 dir /b "%RELEASE_DIR%"

@@ -14,7 +14,7 @@ cp style.css "$RELEASE_DIR/"
 cp app.js    "$RELEASE_DIR/"
 
 # index.html에서 tests.js 스크립트 태그 제거 후 복사
-sed 's|  <script src="./tests.js"></script>||' index.html > "$RELEASE_DIR/index.html"
+grep -v 'tests\.js' index.html > "$RELEASE_DIR/index.html"
 
 echo "빌드 완료: $RELEASE_DIR/"
 ls -lh "$RELEASE_DIR/"

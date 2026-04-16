@@ -363,6 +363,14 @@
         setStatus(`연속 점프 가능 - 같은 말로 계속 진행`);
         saveGame();
         render();
+        // AI 연속 점프 처리
+        const aiColor = state.playerColor === RED ? BLACK : RED;
+        if (state.mode === MODE_1P && state.turn === aiColor && !state.paused) {
+          setTimeout(() => {
+            const ai = bestMoveFor(aiColor, state.board);
+            if (ai) doMove(ai);
+          }, 300);
+        }
         return;
       }
     }
